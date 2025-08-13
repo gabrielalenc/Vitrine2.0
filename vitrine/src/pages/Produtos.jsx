@@ -1,10 +1,12 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import { useState } from 'react';
 import styled from 'styled-components';
 import Navegacao from '../components/Navegacao'
 import Exibidor from '../components/Exibidor';
-import ProdutosExemplos from '../Data/ProdutosExemplos'
+//import ProdutosExemplos from '../Data/ProdutosExemplos'
+import { useEffect, UseState } from 'react';
+import { useParams } from 'react-router-dom';
+import { ObterProdutoCodigo } from '../functions/RequisaoServidor';
 
 const LinkEstilizado = styled.a`
     text-decoration: none;
@@ -31,18 +33,31 @@ const LinkContainer = styled.div`
 
 function Produtos() {
     const { codigo } = useParams()
-    return (
-        <>
-            <Navegacao>
-                <LinkContainer>
-                    <LinkEstilizado href="/">INICIO</LinkEstilizado>
-                    <LinkEstilizado href="/promocao">PROMOCAO</LinkEstilizado>
-                    <LinkEstilizado href="/carrinho">CARRINHO</LinkEstilizado>
-                </LinkContainer>
-            </Navegacao>
-            <Exibidor produto={ProdutosExemplos.find((produto) => produto.codigo == codigo)} />
-        </>
-    );
-}
+    const [produto, definirProduto] = useState({})
+
+    useEffect(function () {
+        ObterProdutoCodigo(codigo)
+            .then(function (resposta) {
+                if (resposta.status === 200)
+                    definirProduto(resposta.data)
+            })
+            .catch(function (erro) {
+                console.error(erro)
+            })
+    }, [])    
+
+        return (
+            <>
+                <Navegacao>
+                    <LinkContainer>
+                        <LinkEstilizado href="/">INICIO</LinkEstilizado>
+                        <LinkEstilizado href="/promocao">PROMOCAO</LinkEstilizado>
+                        <LinkEstilizado href="/carrinho">CARRINHO</LinkEstilizado>
+                    </LinkContainer>
+                </Navegacao>
+                <Exibidor produto={produto}/>
+            </>
+        );
+    }
 
 export default Produtos

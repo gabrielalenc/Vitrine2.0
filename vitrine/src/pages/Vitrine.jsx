@@ -2,9 +2,12 @@ import React from 'react';
 import { useState } from 'react';
 import Principal from '../components/Principal';
 import styled from 'styled-components';
-import ProdutosExemplos from '../Data/ProdutosExemplos';
+//import ProdutosExemplos from '../Data/ProdutosExemplos';
 import Navegacao from '../components/Navegacao';
 import { createGlobalStyle } from 'styled-components';
+import { useEffect } from 'react';
+import { ObterProdutos } from '../functions/RequisaoServidor';
+
 
 const PaginaVitrine = styled.div`
     padding: 16px;
@@ -51,18 +54,33 @@ const LinkContainer = styled.div`
 
 
 function Vitrine() {
+    const [produtos, definirProdutos] = useState([])
+
+    useEffect(function () {
+        ObterProdutos()
+            .then(function (resposta) {
+                if (resposta.status === 200)
+                definirProdutos(resposta.data)
+            })
+            .catch(function (erro) {
+                console.error(erro)
+            })
+
+    }, [])
     return (
         <>
             <GlobalStyle />
             <PaginaVitrine>
                 <Navegacao titulo="VITRINE">
-                <LinkContainer>
+                    <LinkContainer>
                         <LinkEstilizado href="/">INICIO</LinkEstilizado>
                         <LinkEstilizado href="/promocao">PROMOCAO</LinkEstilizado>
                         <LinkEstilizado href="/carrinho">CARRINHO</LinkEstilizado>
                     </LinkContainer>
                 </Navegacao>
-                <Principal produtos={ProdutosExemplos} />
+                {produtos.length > 0 &&
+                    <Principal produtos={produtos} />
+                }
             </PaginaVitrine>
         </>
     );

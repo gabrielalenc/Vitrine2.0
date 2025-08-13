@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Navegacao from "../components/Navegacao"
-import ProdutosExemplos from "../Data/ProdutosExemplos"
+//import ProdutosExemplos from "../Data/ProdutosExemplos"
 import Janela from "../components/Janela"
 import ObterCarrinho from "../functions/ObterCarrinho";
 import Pagamentos from "../functions/Pagamentos"
 import styled from "styled-components";
 import RemoverCarrinho from "../functions/RemoverCarrinho";
+import { ObterProdutos } from "../functions/RequisaoServidor";
 
 const LinkEstilizado = styled.a`
     text-decoration: none;
@@ -117,22 +118,36 @@ function Carrinho() {
 
     const [carrinho, definirCarrinho] = useState([])
     const [preco, definirPreco] = useState(0)
+    const [produtos, definirProdutos] = useState([])
+
+    useEffect(function () {
+        ObterProdutos()
+            .then(function (resposta) {
+                if (resposta.status === 200)
+                    definirProdutos(resposta.data)
+            })
+            .catch(function (erro) {
+                console.error(erro)
+            })
+    }, [])
 
     useEffect(function () {
         const resultado = ObterCarrinho()
         definirCarrinho(resultado)
-    }, [])
+    }, [produtos])
 
     useEffect(function () {
         var total = 0
         carrinho.map(function (codigo) {
-            for (const produto of ProdutosExemplos)
+            for (const produto of produtos)
                 if (produto.codigo == codigo)
                     total += parseInt(produto.preco)
         })
         definirPreco(total)
 
-    }, [carrinho])
+
+    }, [produtos, carrinho])
+
     return (
         <>
             <Navegacao titulo="Vitrine">
@@ -146,8 +161,8 @@ function Carrinho() {
                 <table width="100%">
                     <tbody>
                         {
-                            carrinho.map(function (codigo, indice) {
-                                for (const produto of ProdutosExemplos) {
+                           produtos.length > 0 && carrinho.map(function (codigo, indice) {
+                                for (const produto of produtos) {
                                     if (produto.codigo == codigo)
                                         return <LinhaTabela key={indice}>
                                             <CelulaTabela>{produto.codigo}</CelulaTabela>
